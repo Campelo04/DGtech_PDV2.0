@@ -1,0 +1,108 @@
+#:import hex kivy.utils.get_color_from_hex
+<BtnLogin>:
+    #font_name:app.fonte_nome
+    font_size:sp(13)
+    background_color:hex("#2A2666")
+    background_normal:''
+    valign:'center'
+    halign:'center' 
+    color:1,1,1
+<Login>:
+    FloatLayout: 
+        orientation:"vertical"
+        canvas: 
+            Color:
+                rgb:hex("#93abbaff")
+            Rectangle:
+                size: self.size
+                pos: self.pos
+        AnchorLayout:
+            anchor_x:"center"
+            anchor_y:"center"
+            size_hint:None,None
+            height:550
+            width:400
+            padding:dp(10)
+            pos_hint: {"center_x": .5, "center_y": .5}
+            orientation:"vertical"
+            canvas: 
+                Color:
+                    rgba:.2,.2,.2,.4
+                RoundedRectangle:
+                    pos: self.x+6,self.y-6
+                    size: self.size
+                    radius: [dp(8)]
+                Color:
+                    rgb:1,1,1
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+                    source:'Images\\v.png'
+                # Color:
+                #     rgb:hex('#414cc4ff')
+                # RoundedRectangle:
+                #     pos: self.pos
+                #     size: self.size
+                #     radius: [dp(8)]
+            BoxLayout:
+                orientation:"vertical"
+                padding:dp(20)
+                spacing:dp(20)
+                BoxLayout:
+                    # canvas: 
+                    #     Color:
+                    #         rgb:1,1,1
+                    #     RoundedRectangle:
+                    #         pos: self.x+self.width/2-self.height/2,self.y
+                    #         size: self.height,self.height
+                    #         radius: [dp(20)]
+                BoxLayout:
+                    spacing:dp(10)
+                    orientation:"vertical"
+                    BoxLayout:
+                        orientation:"vertical"
+                        spacing:dp(5)
+                        InfoLabel:
+                            text:"Usuário"
+                            hint_color:hex("#2A2666")
+                        InfoTextInput:
+                            id:TI_user
+                            hint_text:"Usuário"
+                            hint_color:.7,.7,.7
+                            multiline:False
+                            write_tab:False
+                            focus:True
+                            text:"admin"
+                            on_text_validate:root.ids.TI_password.focus=True
+                    BoxLayout:
+                        orientation:"vertical"
+                        spacing:dp(5)
+                        InfoLabel:
+                            text:"Senha"
+                            hint_color:hex("#2A2666")
+                        InfoTextInput:
+                            id:TI_password
+                            hint_text:"Senha"
+                            password:True
+                            hint_color:.7,.7,.7
+                            multiline:False
+                            text:"IFP@2011info"
+                            write_tab:False
+                            on_text_validate:
+                                root.entrar(root.ids.TI_user.text,root.ids.TI_password.text)
+                BtnLogin:
+                    id:btn_login
+                    size_hint:None,None
+                    height:dp(45)
+                    width:dp(80)
+                    pos_hint:{'center_x':.5,'center_y':0}
+                    text:"Entrar"
+                    font_size:dp(14)
+                    on_release:
+                        root.entrar(root.ids.TI_user.text,root.ids.TI_password.text)
+                        
+                Label:
+                    id:login_mensage
+                    size_hint:1,.2
+                    color:1,1,1
+                    font_size:dp(10)

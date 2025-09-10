@@ -1,0 +1,540 @@
+#:import hex kivy.utils.get_color_from_hex  
+
+<ScrollBox>:
+    #size_hint_y: None
+    #height: self.minimum_height
+    padding:2
+
+<MyPopUp_Alerta>:
+    auto_dismiss:False
+    title:"Atenção"
+    size_hint:None,None
+    width:400
+    height:300
+    #size_hint:.45,.45
+    #pos_hint:{'center_x':.5,'center_y':.5}
+    BoxLayout:
+        orientation:'vertical'
+        Label_Itens:
+            text:root.text
+            valign: 'center'
+            halign: 'center'
+            size_hint_y:.8
+            color:1,1,1
+        BoxLayout:
+            spacing:30
+            orientation:'vertical'
+            Btn:
+                text:'Ok'
+                font_size:14
+                on_release:
+                    root.dismiss()
+                size_hint:None,None
+                height:35
+                width:75
+                pos_hint:{'center_x':.5,'center_y':.2}
+
+<Btn>:
+    valign:"center"
+    halign:"center"
+    background_color:1,1,1,0
+    background_normal:""
+    text:"pede ai"
+<Label_Itens>:
+    color:root.color
+    halign:"left"
+    font_size: dp(12)
+    size_hint:.5,.6
+    valign:"top"
+    size_hint_x:1
+    #size_hint_y:None
+
+<Btn_Item>:
+    id:self.id
+    canvas:
+        Color:
+            rgb:hex("#4169e1")
+        RoundedRectangle:
+            size:self.size
+            pos:self.x+3,self.y-3
+        Color:
+            rgb:hex("#87CEFA")
+        RoundedRectangle:
+            size:self.size
+            pos:self.pos
+    size_hint_y:None
+    height:150
+    valign:"center"
+    halign:"center"
+    background_color:1,1,1,0
+    background_normal:""
+    padding:3
+    on_release:
+        #app.root.ids.Pedidos.ids.verifi_mensage.text = str(app.root.ids.Pedidos.atualizar_campo_pedido(app.root.ids.Pedidos.pedido_ativo,"itens",{'cod':'0001','qnt':3})) #app.root.ids.Pedidos.pedido_ativo
+        app.root.ids.pedidos.adicionar_item_pedido(root.id, root.categoria + " de " + root.nome, root.valor)
+    BoxLayout:
+        orientation:"vertical"
+        padding:10,10,10,0
+        spacing:5
+        Label_Itens:
+            text: root.id
+            halign: "left"
+            font_size: pt(11)
+        BoxLayout:
+            Label_Itens:
+                text: root.categoria + " de " + root.nome
+                halign: "left"
+                font_size: pt(11)
+        Label_Itens:
+            text: "R$ "+root.valor
+            halign: "right"
+            font_size: pt(11)
+<Back>:
+    id: Back
+    size_hint_x:0
+    background_color:0,0,0,0
+    background_normal:""
+    canvas:
+        Color:
+            rgb:1,1,1
+        Rectangle:
+            pos: self.x+self.height*0.2,self.y+self.height*0.2
+            size: self.height*0.6,self.height*0.6
+            source:"Images/voltar.png"
+    on_release:
+        app.root.ids.Pedidos.ids.itens_cardapio.clear_widgets()
+        #root.carregar_categorias("")
+        app.root.ids.Pedidos.ids.verifi_mensage.text=str(app.root.ids.Pedidos.carregar_categorias(""))
+        app.root.ids.Pedidos.ids.back.size_hint_x =0
+        #app.root.ids.Pedidos.ids.header_itens.clear_widgets()
+        
+
+<Btn_Categoria>:
+    id:self.id
+    canvas:
+        Color:
+            rgba:0,0,0,.4
+        RoundedRectangle:
+            size:self.size
+            pos:self.x+3,self.y-3
+        Color:
+            rgb:hex("#fdfdfd")
+        RoundedRectangle:
+            size:self.size
+            pos:self.pos
+    size_hint_y:None
+    on_release:
+        app.root.ids.Pedidos.ids.itens_cardapio.clear_widgets()
+        app.root.ids.Pedidos.carregar_cardapio_categoria(root.ids.esta_categoria.text)
+        app.root.ids.Pedidos.ids.back.size_hint_x =.2
+        app.root.ids.Pedidos.ids.verifi_mensage.text = app.root.ids.Pedidos.ids.header_itens_label.text
+    height:75
+    background_color:1,1,1,0
+    background_normal:""
+    padding:3
+    Label_Itens:
+        id: esta_categoria
+        valign:"center"
+        halign:"center"
+        text: root.categoria
+        font_size: pt(11)
+
+<MyOption@SpinnerOption>
+    font_size: pt(10)
+    background_color:1,1,1,.8
+
+<Pedido_aberto>:
+    id:pedido_aberto
+    size_hint:1,None
+    height:self.minimum_height
+    orientation:"vertical"
+    padding:10,10,10,10
+    canvas:
+        Color:
+            rgb:hex("#ffffdd")
+        Rectangle:
+            size: self.size
+            pos:self.pos
+    Label_Itens: #Cabeçalho
+        size_hint_y:None
+        size_hint_x:1
+        height:dp(100)
+        text: "Deliciê\nConfeitaria\nrua Amzonas 386, São Sebastião - Tucuruí-PA \nPedido"+root.id
+        halign: 'center'
+        color:.1,.1,.1
+        font_size:14
+    Label_Itens: #Informações apresentadas por item 
+        text: "Cód    |    Nome    |    Qntd   |  Vlr Und   |  Vlr Final"
+        size_hint_y:None
+        height:dp(30)
+    BoxLayout:
+        id: listar_itens
+        size_hint:1,None
+    Label_Itens: #Dados do Pedido
+        text: "Formas de Pagamento"
+        size_hint_y:None
+        height:dp(30)
+    BoxLayout:
+        size_hint:1,None
+        height:dp(70)
+        BoxLayout:
+            Label_Itens:
+                text:"Din"
+                height:dp(20)            
+            CheckBox:
+                text: "cb1"
+                height:dp(20)
+        BoxLayout:
+            Label_Itens:
+                text:"Pix"
+                height:dp(20)            
+            CheckBox:
+                text: "cb1"
+                height:dp(20)
+        BoxLayout:
+            Label_Itens:
+                text:"Créd"
+                height:dp(20)            
+            CheckBox:
+                text: "cb1"
+                height:dp(20)
+        BoxLayout:
+            Label_Itens:
+                text:"Débito"
+                height:dp(20)            
+            CheckBox:
+                text: "cb1"
+                height:dp(20)
+    BoxLayout:
+        size_hint:1,None
+        height:dp(70)
+        BoxLayout:
+            Label_Itens:
+                text:"On IFood"
+                height:dp(20)            
+            CheckBox:
+                text: "cb1"
+                height:dp(20)
+        BoxLayout:
+            Label_Itens:
+                text:"On PedeAi"
+                height:dp(20)            
+            CheckBox:
+                text: "cb1"
+                height:dp(20)
+
+    
+    Label_Itens: #Rodapé
+        size_hint_y:None
+        size_hint_x:1
+        height:dp(40)
+        text: "Deliciê \n Tornando o seu dia mais doce"
+        halign: 'center'
+        color:.1,.1,.1
+        font_size:14
+
+<Btn_Pedido>:
+    id:self.id
+    canvas:
+        Color:
+            rgba:0,0,0,.4
+        RoundedRectangle: #Rounded
+            size:self.size
+            pos:self.x+3,self.y-3
+        Color:
+            rgb:hex(root.minha_cor(str(root.estado))) #hex('#00BFFF')
+        RoundedRectangle:
+            size:self.size
+            pos:self.pos
+    size_hint_y:None
+    height:pt(140)
+    valign:"center"
+    halign:"center"
+    background_color:1,1,1,0
+    background_normal:""
+    padding:3
+    on_release:
+        app.root.ids.pedidos.ids.lista_pedidos.clear_widgets()
+        app.root.ids.pedidos.abrir_pedido(self.id)
+    BoxLayout:
+        orientation:"vertical"
+        padding:10,10,10,0
+        spacing:5
+        BoxLayout:
+            orientation:"vertical"
+            BoxLayout:
+                Label_Itens:
+                    text: "Nome"
+                    halign: "left"
+                    font_size: pt(11)    
+                Label_Itens:
+                    text: root.codigo
+                    halign: "right"
+                    font_size: pt(11)
+                Button:
+                    text: 'X'
+                    color:1,0,0
+                    background_color:1,1,1,0
+                    background_normal:""
+                    size_hint_x:None
+                    width:self.height
+                    on_release: 
+                        app.root.ids.pedidos.ids.verifi_mensage.text = str(app.root.ids.pedidos.deletar_pedido(root.id))
+                        app.root.ids.pedidos.deletar_pedido(root.id)
+                        app.root.ids.pedidos.ids.lista_pedidos.clear_widgets()
+                        app.root.ids.pedidos.carregar_pedidos("")
+                    #root.editar_campo(root.id,"estado","CANCELADO")
+
+            TextInput:
+                text: root.id_cliente
+                hint_text: "Informe o nome do cliente aqui"
+                font_size: pt(11)
+                multiline: False
+                background_color:1,1,1,0
+                background_normal:""
+                on_text_validate: app.root.ids.pedidos.editar_atributo(root.id,"id_cliente",self.text)
+                
+
+        BoxLayout:
+            spacing:5
+            BoxLayout:
+                orientation:"vertical"
+                Label_Itens:
+                    text:'Origem:'
+                    halign:"left"
+                    font_size: pt(11)
+                MySpinner:
+                    id:spinner_id                   
+                    text:root.origem
+                    values:["Instagram","WhatsApp","Telefone","Ifood","PedeAi"]
+                    background_color:1,1,1,.8
+                    color:0,0,0
+                    background_normal:""
+                    on_text: app.root.ids.pedidos.editar_atributo(root.id,"origem",self.text)
+                    option_cls: "MyOption"
+                    font_size: pt(11)
+                    
+            BoxLayout:
+                orientation:"vertical"
+                Label_Itens:
+                    text:'Estado:'
+                    halign:"left"
+                    font_size: pt(11)
+                MySpinner:
+                    id:spinner_id2
+                    text:root.estado
+                    values:["Criado","Em produção","Em rota ","Entregue/servido","Finalizado"]
+                    background_color:1,1,1,.8
+                    color:0,0,0
+                    font_size: pt(11)
+                    background_normal:""
+                    halign:"left"
+                    on_text: 
+                        app.root.ids.pedidos.editar_atributo(root.id,"estado",self.text)
+                        #app.root.ids.Pedidos.ids.lista_pedidos.clear_widgets()
+                        #app.root.ids.Pedidos.carregar_pedidos("")
+        BoxLayout:
+            spacing:5
+            BoxLayout:
+                orientation:"vertical"
+                Label_Itens:
+                    text: "Criação:"
+                    font_size: pt(11)
+                    halign: "left"
+                Label_Itens:
+                    text: root.abertura
+                    font_size: pt(11)
+                    halign: "left"
+                    color:0,0,1
+            BoxLayout:
+                orientation:"vertical"
+                Label_Itens:
+                    text: "Encerramento:"
+                    font_size: pt(11)
+                    halign: "left"
+                    
+                Label_Itens:
+                    text: root.fechamento
+                    font_size: pt(11)
+                    halign: "left"
+                    color:1,0,0
+
+            #Iniciado:
+            #Preparando:
+            #Servido:
+            #Cancelado:
+            #Encerrado:
+
+
+
+<Pedidos>:
+    id:Pedidos
+    BoxLayout:
+        spacing: 10
+        orientation:"vertical"
+        canvas:
+            Color:
+                rgb: .9,.9,.9
+            Rectangle:
+                pos:self.pos
+                size:self.size
+        BoxLayout:
+            size_hint_y:.06
+            Btn:
+                text:"Home"
+                on_release:app.root.ids.Manager.current ="gestao"
+            Btn:
+                text:"Novo"
+                on_press:
+                    root.ids.verifi_mensage.text = str(root.criar_pedido(str(root.contar_pedidos()),"Caixa 01"))
+                    root.ids.lista_pedidos.clear_widgets()
+                    root.listar_pedidos()
+                     #root.ids.lista_pedidos.clear_widgets()
+                    #root.carregar_pedidos("")
+
+                    #root.ids.status_bar.text = str(root.novo_pedido("2025001", "CLI001", "FUNC001", "itemqualquer", "100,00", "primeiro pedido de todos. HELLO WORLD!")) #str())
+                    #app.root.ids.status_bar.text("O Botão comunicou com a Label")
+
+            Btn:
+                text:"Bloquear"
+                on_release:
+                    root.manager.current ="login"
+                    app.root.ids.login.ids.TI_password.text = ""
+            
+            Btn:
+                text:"Atualizar"
+                on_release: 
+                    root.ids.itens_cardapio.clear_widgets()
+                    root.ids.lista_pedidos.clear_widgets()
+                    root.listar_pedidos()
+                    root.carregar_cardapio("")
+            Btn:
+                text:"Limpar"
+                on_press: 
+                    root.ids.itens_cardapio.clear_widgets()
+                    root.ids.lista_pedidos.clear_widgets()
+        BoxLayout:
+            padding:10
+            spacing:10
+            Box_List:
+                orientation:"vertical"
+                padding:3
+                #size_hint_x:None
+                #width:325
+                canvas:
+                    Color:
+                        rgb:0,0,.3
+                    RoundedRectangle:
+                        size:self.width,self.height*.06
+                        pos:self.x,self.y+self.height*.94
+                    Rectangle:
+                        size:self.width,self.height*.03
+                        pos:self.x,self.y+self.height*.94
+                    Line:
+                        rectangle: (self.x+1,self.y, self.width-1, self.height*.94)
+                        width:.5
+                BoxLayout:
+                    id: header_itens
+                    size_hint_y:.120
+                    orientation:"vertical"
+                    Label:
+                        id: header_itens_label
+                        text:"Produtos"
+                        color:1,1,1,.8
+                    BoxLayout:
+                        size_hint_y:.85
+                        TextInput:
+                            id:busca_produtos
+                            hint_text:"buscar produtos aqui"
+                            color:0,0,0
+                            size_hint:1,1
+                            multiline:False
+                        Btn:
+                            text:"ir"
+                            size_hint_x:None
+                            width: self.height
+                            on_release: 
+                                root.pesquisar_produtos(root.carregar_cardapio(""),root.ids.busca_produtos.text)
+                ScrollView:
+                    id:scroll_1
+                    do_scroll_y:True
+                    pos_hint: {'top':1}
+                    spacing:dp(3)
+                    ScrollBox:
+                        id:itens_cardapio
+                        orientation:"vertical"
+                        padding:10,10,10,10
+                        spacing:15
+                        size_hint_y:None
+                        height:self.minimum_height
+
+                        
+            Box_List:
+                orientation:"vertical"
+                padding:3
+                #size_hint_x:None
+                #width:325
+                canvas:
+                    Color:
+                        rgb:0,0,.3
+                    RoundedRectangle:
+                        size:self.width,self.height*.06
+                        pos:self.x,self.y+self.height*.94
+                    Rectangle:
+                        size:self.width,self.height*.03
+                        pos:self.x,self.y+self.height*.94
+                    Line:
+                        rectangle: (self.x+1,self.y, self.width-0.5, self.height*.94)
+                        width:.5
+                BoxLayout:
+                    id: header_itens
+                    size_hint_y:.120
+                    orientation:"vertical"
+                    Label:
+                        id: header_itens_label
+                        text:"Pedidos"
+                        color:1,1,1,.8
+                    BoxLayout:
+                        size_hint_y:.85
+                        TextInput:
+                            id:busca_pedidos
+                            hint_text:"buscar produtos aqui"
+                            color:0,0,0
+                            size_hint:1,1
+                            multiline:False
+                        Btn:
+                            text:"ir"
+                            size_hint_x:None
+                            width: self.height
+                            on_release: 
+                                root.pesquisar_pedidos(root.carregar_pedidos(""),root.ids.busca_pedidos.text)
+                            
+                ScrollView:
+                    id:scroll_2
+                    do_scroll_y:True
+                    pos_hint: {'top':1}
+                    
+                    ScrollBox:
+                        id:lista_pedidos
+                        orientation:"vertical"
+                        padding:7
+                        spacing:10
+                        size_hint_y:None
+                        height:self.minimum_height
+        BoxLayout:
+            orientation:'vertical'
+            size_hint_y:.03
+            canvas:
+                Color:
+                    rgb:1,1,1
+                Rectangle:
+                    size:self.size
+                    pos:self.pos
+            MyFooterLabel:
+                id:verifi_mensage
+                size_hint:1,1
+                text_hint:"Hello world"
+                color:0,0,0
+
+
+                    
