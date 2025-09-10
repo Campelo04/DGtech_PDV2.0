@@ -184,3 +184,56 @@ async def add_item(pedido_id: str, item: Item):
         "incremento": valor_item,
         "novo_valor_total": float(novo.get("valor_total", vt + valor_item))
     }
+
+
+@router.delete("/{pedido_id}/itens/{index}")
+async def remover_item_por_indice(pedido_id: str, index: int):
+    # valida id
+    if not ObjectId.is_valid(pedido_id):
+        raise HTTPException(status_code=400, detail="ID inválido")
+    oid = ObjectId(pedido_id)
+
+    # carrega pedido
+    pedido = await pedidos_col.find_one({"_id": oid})
+    if not pedido:
+        raise HTTPException(status_code=404, detail="Pedido não encontrado")
+
+    itens = list(pedido.get("itens") or [])
+    if not itens:
+        raise HTTPException(status_code=400, detail="Pedido não possui itens")
+
+    # valida índice
+    if index < 0 or index >= len(itens):
+        raise HTTPException(status_code=400, detail="Index fora do intervalo")
+
+    # remove item e calcula decremento (valor_und * qnt)
+    item_removido = itens.pop(index)
+    aux = str(item_removido.get("valor_und", 0))
+    valor_und = float(aux.replace(",","."))
+    qnt = float(item_removido.get("qnt", 0))
+    try:
+        qnt = int(qnt)
+    except Exception:
+        pass
+    decremento = float(valor_und * qnt)
+
+    # normaliza total atual e calcula novo
+    vt_atual = float(pedido.get("valor_total", 0))
+    novo_total = max(0.0, vt_atual - decremento)
+
+    # persiste
+    result = await pedidos_col.update_one(
+        {"_id": oid},
+        {"$set": {"itens": itens, "valor_total": novo_total}}
+    )
+    if result.modified_count == 0:
+        raise HTTPException(status_code=400, detail="Nenhuma modificação aplicada")
+
+    return {
+        "msg": "Item removido com sucesso",
+        "index_removido": index,
+        "item_removido": item_removido,
+        "decremento": decremento,
+        "valor_total_anterior": vt_atual,
+        "valor_total_atual": novo_total,
+    }

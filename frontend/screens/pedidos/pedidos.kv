@@ -72,6 +72,9 @@
     on_release:
         #app.root.ids.Pedidos.ids.verifi_mensage.text = str(app.root.ids.Pedidos.atualizar_campo_pedido(app.root.ids.Pedidos.pedido_ativo,"itens",{'cod':'0001','qnt':3})) #app.root.ids.Pedidos.pedido_ativo
         app.root.ids.pedidos.adicionar_item_pedido(root.id, root.categoria + " de " + root.nome, root.valor)
+        app.root.ids.pedidos.ids.lista_pedidos.clear_widgets()
+        app.root.ids.pedidos.atualiza_visao_pedido()
+        
     BoxLayout:
         orientation:"vertical"
         padding:10,10,10,0
@@ -154,6 +157,8 @@
             size_hint:None,None
             height:10
             width:10
+            on_release:
+                app.root.ids.pedidos.remover_item(root.indice)
     BoxLayout:
         TextInput:
             text: root.item["qnt"]
@@ -162,6 +167,7 @@
             width:30
         Label_Itens:
             text:" x "+ root.item["valor_und"]+" = "+str(float(root.item["valor_und"].replace(",","."))*int(root.item["qnt"]))
+
 <Pedido_aberto>:
     id:pedido_aberto
     size_hint:1,None
@@ -191,41 +197,98 @@
         height:60*len(root.itens)
         orientation:"vertical"
         id: itens_pedido
+    Label_Itens:
+        text: "Valor Total: "+root.valor_total
+        halign:"right"
+        font_size:dp(14)
+        size_hint_y:None
+        bold:True
+        valign:"bottom"
+        height:60
     Label_Itens: #Dados do Pedido
         text: "Formas de Pagamento"
+        halign:"center"
+        font_size:dp(14)
         size_hint_y:None
+        valign:"bottom"
         height:dp(30)
     BoxLayout:
         size_hint:1,None
-        height:dp(70)
+        height:dp(50)
+        canvas:
+            Color:
+                rgb:1,1,1
+            RoundedRectangle:
+                size:self.size
+                pos:self.pos
+                radius: [dp(10)]
         BoxLayout:
+            CheckBox:
+                text: "cb1"
+                height:dp(20)
+                background_checkbox_normal:'images\checkbox_off.png'
+                background_checkbox_down:'images\checkbox_on.png'    
             Label_Itens:
                 text:"Din"
                 height:dp(20)            
-            CheckBox:
-                text: "cb1"
-                height:dp(20)
+            
         BoxLayout:
+            CheckBox:
+                text: "cb2"
+                height:dp(20)
+                background_checkbox_normal:'images\checkbox_off.png'
+                background_checkbox_down:'images\checkbox_on.png'
             Label_Itens:
                 text:"Pix"
                 height:dp(20)            
-            CheckBox:
-                text: "cb1"
-                height:dp(20)
+            
         BoxLayout:
+            CheckBox:
+                text: "cb3"
+                height:dp(20)
+                background_checkbox_normal:'images\checkbox_off.png'
+                background_checkbox_down:'images\checkbox_on.png'
             Label_Itens:
                 text:"Créd"
                 height:dp(20)            
-            CheckBox:
-                text: "cb1"
-                height:dp(20)
+            
         BoxLayout:
+            CheckBox:
+                text: "cb4"
+                height:dp(20)
+                background_checkbox_normal:'images\checkbox_off.png'
+                background_checkbox_down:'images\checkbox_on.png'
+                on_active:
+                    root.ids.fp_dinheiro.readonly = False
             Label_Itens:
                 text:"Débito"
                 height:dp(20)            
-            CheckBox:
-                text: "cb1"
-                height:dp(20)
+    BoxLayout:
+        size_hint_y:None
+        height:40
+        spacing:dp(4)
+        InfoTextInput:
+            id:fp_dinheiro
+            readonly:True
+            text_hint: "R$"
+            color:.2,.2,.2
+            dismiss:True
+        InfoTextInput:
+            readonly:True
+            text_hint: "R$"
+            color:.2,.2,.2
+            dismiss:True
+        InfoTextInput:
+            readonly:True
+            text_hint: "R$"
+            color:.2,.2,.2
+            dismiss:True
+        InfoTextInput:
+            readonly:True
+            text_hint: "R$"
+            color:.2,.2,.2
+            dismiss:True
+
     BoxLayout:
         size_hint:1,None
         height:dp(70)

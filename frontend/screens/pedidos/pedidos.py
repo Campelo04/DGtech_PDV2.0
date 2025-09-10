@@ -124,8 +124,12 @@ class Pedido_aberto(BoxLayout):
             self.estado = p.estado
             self.obs = p.obs
         super().__init__(**kwargs)
+        cont = 0
         for i in self.itens:
-            self.ids.itens_pedido.add_widget(ItemPedido(i))
+            self.ids.itens_pedido.add_widget(ItemPedido(i,cont))
+            cont += 1
+            
+    
 
 class Btn_Pedido(Button,BoxLayout):
     def __init__(self, id, codigo, id_cliente, id_funcionario, itens, origem, valor, abertura, fechamento, estado, obs, **kwargs):
@@ -276,8 +280,9 @@ class Back(Button):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 class ItemPedido(BoxLayout):
-    def __init__(self,item, **kwargs):
+    def __init__(self,item, indice,**kwargs):
         self.item =item
+        self.indice =indice
         super().__init__(**kwargs) 
         
 class Pedidos(Screen):
@@ -407,9 +412,20 @@ class Pedidos(Screen):
         update = {"campo": f"{campo}","valor": f"{valor}"}
         response = requests.patch(API_URL, params=update, headers=self.headers,timeout=10)
     def adicionar_item_pedido(self,codigo,nome,valor):
-        API_URL = fr"http://127.0.0.1:8000/pedidos/{self.pedido_ativo}/itens/add"
-        payload = {"codigo": f"{codigo}","nome": f"{nome}","valor_und": f"{valor}","qnt": "1"}
-        response = requests.put(API_URL, json=payload, headers=self.headers,timeout=10)
+        try:
+            API_URL = fr"http://127.0.0.1:8000/pedidos/{self.pedido_ativo}/itens/add"
+            payload = {"codigo": f"{codigo}","nome": f"{nome}","valor_und": f"{valor}","qnt": "1"}
+            response = requests.put(API_URL, json=payload, headers=self.headers,timeout=10)
+        except:
+            MyPopUp_Alerta("Certifique-se que existe um pedido aberto para adicionar este item.").open()
+    def remover_item(self,index):
+        API_URL = fr"http://127.0.0.1:8000/pedidos/{self.pedido_ativo}/itens/{int(index)}"
+        response = requests.delete(API_URL, headers=self.headers,timeout=2)
+        print(response.json())
+        self.atualiza_visao_pedido()
+    def atualiza_visao_pedido(self):
+        self.ids.lista_pedidos.clear_widgets()
+        self.ids.lista_pedidos.add_widget(Pedido_aberto(self.pedido_ativo,self.headers))
         #MyPopUp_Alerta("adicionou").open()
     #     API_URL = f"http://127.0.0.1:8000/pedidos/{self.pedido_ativo}/itens/add"
 
