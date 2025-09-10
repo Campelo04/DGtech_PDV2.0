@@ -24,14 +24,16 @@ class MyPopUp_Alerta(Popup):
         super().__init__(**kwargs)
     
 class Pedido():
-    def __init__(self, id, codigo, id_cliente, id_funcionario, itens, origem="", valor="", abertura="", fechamento="", estado="", obs="", **kwargs):
+    def __init__(self, id, codigo, id_cliente, id_funcionario, endereco, origem, itens, formas_pagamento, valor_total, abertura="", fechamento="", estado="", obs="", **kwargs):
         self.id = id
         self.codigo = codigo 
         self.id_cliente = id_cliente 
         self.id_funcionario = id_funcionario
-        self.itens = itens
+        self.emdereco = endereco
         self.origem = origem
-        self.valor = valor 
+        self.itens = itens
+        self.formas_pagamento =formas_pagamento
+        self.valor_total = valor_total 
         self.abertura = abertura
         self.fechamento = fechamento
         self.estado = estado
@@ -114,13 +116,16 @@ class Pedido_aberto(BoxLayout):
             self.id_cliente = p.id_cliente
             self.id_funcionario = p.id_funcionario
             self.itens = p.itens
+            self.formas_pagamento = p.formas_pagamento
             self.origem = p.origem
-            self.valor = p.valor
+            self.valor_total = p.valor_total
             self.abertura = p.abertura
             self.fechamento = p.fechamento
             self.estado = p.estado
             self.obs = p.obs
         super().__init__(**kwargs)
+        for i in self.itens:
+            self.ids.itens_pedido.add_widget(ItemPedido(i))
 
 class Btn_Pedido(Button,BoxLayout):
     def __init__(self, id, codigo, id_cliente, id_funcionario, itens, origem, valor, abertura, fechamento, estado, obs, **kwargs):
@@ -270,26 +275,32 @@ class MySpinner(Spinner):
 class Back(Button):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-     
+class ItemPedido(BoxLayout):
+    def __init__(self,item, **kwargs):
+        self.item =item
+        super().__init__(**kwargs) 
+        
 class Pedidos(Screen):
     def __init__(self, **kw):
         self.pedido_ativo = ""
         self.pedidos_qnt = 0
         super().__init__(**kw)
     def criar_pedido(self, codigo, 
-                    id_funcionario,  
+                    id_funcionario,
+                    abertura  
                     ): 
         API_URL = "http://127.0.0.1:8000/pedidos/"
         #print("\n\n A URL FOI REQUISITADA \n\n")
         try:
             response = requests.post(API_URL, json={"codigo":codigo, 
                                                     "id_cliente": "anonimo", 
-                                                    "id_funcionario":id_funcionario, 
+                                                    "id_funcionario":id_funcionario,
+                                                    "endereco":"", 
                                                     "origem":"selecionar", 
                                                     "itens":[], 
                                                     "formas_pagamento":[],
                                                     "valor_total": "", 
-                                                    "abertura": "",
+                                                    "abertura": abertura,
                                                     "fechamento": "", 
                                                     "estado":"Criado",
                                                     "obs":""},headers=self.headers,timeout=10)
@@ -306,7 +317,10 @@ class Pedidos(Screen):
         except:
             return "Falha na comnicação.\nVerifique o seu funcionamento da API."
         return response.json()
-
+    def marcar_abertura(self):
+        agora = datetime.now()
+        hora_minuto = agora.strftime("%H:%M")
+        return hora_minuto
     def contar_pedidos(self):
         API_URL = "http://127.0.0.1:8000/pedidos/"
         #print("#  ENTROU NO CARREGAMENTO DE PEDIDOS")
@@ -315,7 +329,7 @@ class Pedidos(Screen):
                 #print("#  ENTROU NO 'TRY' CARREGAMENTO DE PEDIDOS")
                 response = requests.get(f"{API_URL}",headers=self.headers,timeout=10)
             except:
-                return "Falha na cominicação.\nVerifique o seu funcionamento da API."
+                return "Falha na comunicação.\n Verifique o seu funcionamento da API."
             try:
                 for i in response.json():
                     p = Pedido(**i)
@@ -350,7 +364,7 @@ class Pedidos(Screen):
             #print("# PEDIDOS AQUI")
             #for j in vars(p):
             #    print(j)
-            self.ids.lista_pedidos.add_widget(Btn_Pedido(p.id,p.codigo,p.id_cliente,p.id_funcionario,p.itens,p.origem,p.valor,p.abertura,p.fechamento,p.estado,p.obs))
+            self.ids.lista_pedidos.add_widget(Btn_Pedido(p.id,p.codigo,p.id_cliente,p.id_funcionario,p.itens,p.origem,p.valor_total,p.abertura,p.fechamento,p.estado,p.obs))
     def carregar_cardapio(self,produto_id):
         API_URL = "http://127.0.0.1:8000/produtos/"
         try:
@@ -387,7 +401,16 @@ class Pedidos(Screen):
     def abrir_pedido(self,id):
         self.ids.lista_pedidos.add_widget(Pedido_aberto(id,self.headers))
         self.pedido_ativo = id
-    # def adicionar_item_pedido(self, codigo, nome, valor):
+        
+    def udpade_pedido(self,id_pedido,campo,valor):
+        API_URL = f"http://127.0.0.1:8000/pedidos/{id_pedido}/update"
+        update = {"campo": f"{campo}","valor": f"{valor}"}
+        response = requests.patch(API_URL, params=update, headers=self.headers,timeout=10)
+    def adicionar_item_pedido(self,codigo,nome,valor):
+        API_URL = fr"http://127.0.0.1:8000/pedidos/{self.pedido_ativo}/itens/add"
+        payload = {"codigo": f"{codigo}","nome": f"{nome}","valor_und": f"{valor}","qnt": "1"}
+        response = requests.put(API_URL, json=payload, headers=self.headers,timeout=10)
+        #MyPopUp_Alerta("adicionou").open()
     #     API_URL = f"http://127.0.0.1:8000/pedidos/{self.pedido_ativo}/itens/add"
 
     #     response2 = self.carregar_pedidos(self.pedido_ativo)

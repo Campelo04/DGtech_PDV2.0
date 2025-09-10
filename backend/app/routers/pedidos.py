@@ -18,6 +18,7 @@ class Pedido(BaseModel):
     codigo: str
     id_cliente: str
     id_funcionario: str
+    endereco: str
     origem: str
     itens: Optional[List[dict]] = None
     formas_pagamento: Optional[List[dict]] = None
@@ -33,6 +34,7 @@ def pedido_serializer(doc):
         "codigo": str(doc.get("codigo", "")),
         "id_cliente": str(doc.get("id_cliente", "")),
         "id_funcionario": str(doc.get("id_funcionario", "")),
+        "endereco": str(doc.get("endereco", "")),
         "origem": str(doc.get("origem", "")),
         "itens": doc.get("itens", []),
         "formas_pagamento":doc.get("itens", []),
@@ -110,45 +112,75 @@ async def deletar_pedido(pedido_id: str):
             return {"mensagem": "pedido deletado com sucesso"}
     raise HTTPException(status_code=404, detail="pedido não encontrado")
 
-#---------------------------------------------------------------------
-@router.put("/{pedido_id}/itens/add")
-async def add_item(pedido_id: str, payload: dict):
-    """
-    payload esperado:
-    {
-        "item": {"cod": "100", "nome": "sushi", "valor": 10},
-        "novo_valor": 50.0   # valor total já recalculado
-    }
-    """
-    try:
-        oid = ObjectId(pedido_id)
-    except Exception:
-        raise HTTPException(400, "ID inválido")
+#alterar atributos isoladamente
+@router.patch("/{pedido_id}/update")
+async def atualizar_atributo(pedido_id: str, campo: str, valor: str):
+    if not ObjectId.is_valid(pedido_id):
+        raise HTTPException(status_code=400, detail="ID inválido")
 
-    item = payload.get("item")
-    novo_valor = payload.get("novo_valor")
-
-    if not item or novo_valor is None:
-        raise HTTPException(400, "É necessário enviar item e novo_valor")
-
-    try:
-        novo_valor = float(str(novo_valor).replace(",", "."))
-    except Exception:
-        raise HTTPException(400, "novo_valor inválido")
-
-    result = await db.Pedidos.update_one(
-        {"_id": oid},
-        {
-            "$push": {"itens": item},
-            "$set": {"valor": novo_valor}
-        },
+    result = await pedidos_col.update_one(
+        {"_id": ObjectId(pedido_id)},
+        {"$set": {campo: valor}}
     )
 
     if result.matched_count == 0:
-        raise HTTPException(404, "Pedido não encontrado")
+        raise HTTPException(status_code=404, detail="Pedido não encontrado")
 
+    return {"msg": f"Atributo '{campo}' atualizado com sucesso!", "valor": valor}
+
+class Item(BaseModel):
+    codigo: str
+    nome: str
+    valor_und: str
+    qnt: str
+
+#adicionar itens
+@router.put("/{pedido_id}/itens/add")
+async def add_item(pedido_id: str, item: Item):
+    if not ObjectId.is_valid(pedido_id):
+        raise HTTPException(status_code=400, detail="ID inválido")
+
+    oid = ObjectId(pedido_id)
+    pedido = await pedidos_col.find_one({"_id": oid})
+    if not pedido:
+        raise HTTPException(status_code=404, detail="Pedido não encontrado")
+
+    # tratar valor_und (troca vírgula por ponto)
+    try:
+        valor_unit = float(item.valor_und.replace(",", ".").strip())
+        quantidade = int(item.qnt.strip())
+    except Exception:
+        raise HTTPException(status_code=400, detail="Erro ao converter valor ou quantidade")
+
+    valor_item = valor_unit * quantidade
+
+    # garantir que valor_total seja número
+    vt = pedido.get("valor_total", 0)
+    if not isinstance(vt, (int, float)):
+        try:
+            if isinstance(vt, str):
+                vt = float(vt.replace(",", ".").strip())
+            else:
+                vt = float(vt)
+        except Exception:
+            vt = 0.0
+        await pedidos_col.update_one({"_id": oid}, {"$set": {"valor_total": vt}})
+
+    # atualizar banco: adiciona item e incrementa valor_total
+    result = await pedidos_col.update_one(
+        {"_id": oid},
+        {
+            "$push": {"itens": item.model_dump()},
+            "$inc": {"valor_total": valor_item}
+        }
+    )
+
+    if result.modified_count == 0:
+        raise HTTPException(status_code=400, detail="Falha ao adicionar item")
+
+    novo = await pedidos_col.find_one({"_id": oid}, {"valor_total": 1})
     return {
-        "ok": True,
-        "matched": result.matched_count,
-        "modified": result.modified_count
+        "msg": "Item adicionado com sucesso",
+        "incremento": valor_item,
+        "novo_valor_total": float(novo.get("valor_total", vt + valor_item))
     }

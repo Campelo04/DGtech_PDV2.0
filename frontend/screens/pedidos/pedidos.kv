@@ -142,7 +142,26 @@
 <MyOption@SpinnerOption>
     font_size: pt(10)
     background_color:1,1,1,.8
-
+<ItemPedido>:
+    orientation:"vertical"
+    size_hint_y:None
+    height:dp(50)
+    BoxLayout:
+        Label_Itens:
+            text: root.item["codigo"]+" | "+ root.item["nome"]
+        Btn:
+            text:"x"
+            size_hint:None,None
+            height:10
+            width:10
+    BoxLayout:
+        TextInput:
+            text: root.item["qnt"]
+            size_hint:None,None
+            height:30
+            width:30
+        Label_Itens:
+            text:" x "+ root.item["valor_und"]+" = "+str(float(root.item["valor_und"].replace(",","."))*int(root.item["qnt"]))
 <Pedido_aberto>:
     id:pedido_aberto
     size_hint:1,None
@@ -158,8 +177,8 @@
     Label_Itens: #Cabeçalho
         size_hint_y:None
         size_hint_x:1
-        height:dp(100)
-        text: "Deliciê\nConfeitaria\nrua Amzonas 386, São Sebastião - Tucuruí-PA \nPedido"+root.id
+        height:dp(150)
+        text: "\n\n\nDeliciê\nConfeitaria\nrua Amzonas 386, São Sebastião - Tucuruí-PA \nID: "+root.id
         halign: 'center'
         color:.1,.1,.1
         font_size:14
@@ -168,8 +187,10 @@
         size_hint_y:None
         height:dp(30)
     BoxLayout:
-        id: listar_itens
-        size_hint:1,None
+        size_hint_y:None
+        height:60*len(root.itens)
+        orientation:"vertical"
+        id: itens_pedido
     Label_Itens: #Dados do Pedido
         text: "Formas de Pagamento"
         size_hint_y:None
@@ -282,7 +303,7 @@
                         app.root.ids.pedidos.ids.verifi_mensage.text = str(app.root.ids.pedidos.deletar_pedido(root.id))
                         app.root.ids.pedidos.deletar_pedido(root.id)
                         app.root.ids.pedidos.ids.lista_pedidos.clear_widgets()
-                        app.root.ids.pedidos.carregar_pedidos("")
+                        app.root.ids.pedidos.listar_pedidos()
                     #root.editar_campo(root.id,"estado","CANCELADO")
 
             TextInput:
@@ -292,7 +313,7 @@
                 multiline: False
                 background_color:1,1,1,0
                 background_normal:""
-                on_text_validate: app.root.ids.pedidos.editar_atributo(root.id,"id_cliente",self.text)
+                on_text_validate: app.root.ids.pedidos.udpade_pedido(root.id,"id_cliente",self.text)
                 
 
         BoxLayout:
@@ -310,7 +331,7 @@
                     background_color:1,1,1,.8
                     color:0,0,0
                     background_normal:""
-                    on_text: app.root.ids.pedidos.editar_atributo(root.id,"origem",self.text)
+                    on_text: app.root.ids.pedidos.udpade_pedido(root.id,"origem",self.text)
                     option_cls: "MyOption"
                     font_size: pt(11)
                     
@@ -327,10 +348,11 @@
                     background_color:1,1,1,.8
                     color:0,0,0
                     font_size: pt(11)
+                    option_cls: "MyOption"
                     background_normal:""
                     halign:"left"
                     on_text: 
-                        app.root.ids.pedidos.editar_atributo(root.id,"estado",self.text)
+                        app.root.ids.pedidos.udpade_pedido(root.id,"estado",self.text)
                         #app.root.ids.Pedidos.ids.lista_pedidos.clear_widgets()
                         #app.root.ids.Pedidos.carregar_pedidos("")
         BoxLayout:
@@ -386,7 +408,7 @@
             Btn:
                 text:"Novo"
                 on_press:
-                    root.ids.verifi_mensage.text = str(root.criar_pedido(str(root.contar_pedidos()),"Caixa 01"))
+                    root.ids.verifi_mensage.text = str(root.criar_pedido(str(root.contar_pedidos()),"Caixa 01",root.marcar_abertura()))
                     root.ids.lista_pedidos.clear_widgets()
                     root.listar_pedidos()
                      #root.ids.lista_pedidos.clear_widgets()
