@@ -237,3 +237,37 @@ async def remover_item_por_indice(pedido_id: str, index: int):
         "valor_total_anterior": vt_atual,
         "valor_total_atual": novo_total,
     }
+
+@router.put("/{pedido_id}/itens/{index}/update_qnt")
+async def atualizar_quantidade_item(pedido_id: str, index: int, quantidade: int):
+    if quantidade < 1:
+        raise HTTPException(status_code=400, detail="Quantidade deve ser maior que 0.")
+
+    pedido = await pedidos_col.find_one({"_id": ObjectId(pedido_id)})
+    if not pedido:
+        raise HTTPException(status_code=404, detail="Pedido não encontrado.")
+
+    try:
+        item = pedido["itens"][index]
+    except IndexError:
+        raise HTTPException(status_code=404, detail="Item não encontrado nesse pedido.")
+
+    # valores atuais
+    valor_unitario = float(str(item["valor_und"]).replace(",", "."))
+    quantidade_antiga = int(item.get("qnt", 1))
+
+    # recalcular total removendo o valor antigo e somando o novo
+    valor_total = float(str(pedido.get("valor_total", 0)).replace(",", "."))
+    valor_total -= valor_unitario * quantidade_antiga
+    valor_total += valor_unitario * quantidade
+
+    # atualizar o item no pedido
+    pedido["itens"][index]["qnt"] = str(quantidade)
+    pedido["valor_total"] = round(valor_total, 2)
+
+    await pedidos_col.update_one(
+        {"_id": ObjectId(pedido_id)},
+        {"$set": {"itens": pedido["itens"], "valor_total": pedido["valor_total"]}}
+    )
+
+    return {"msg": "Quantidade atualizada com sucesso", "pedido": pedido}

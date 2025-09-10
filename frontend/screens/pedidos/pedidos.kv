@@ -152,7 +152,7 @@
     BoxLayout:
         Label_Itens:
             text: root.item["codigo"]+" | "+ root.item["nome"]
-        Btn:
+        Button:
             text:"x"
             size_hint:None,None
             height:10
@@ -164,7 +164,10 @@
             text: root.item["qnt"]
             size_hint:None,None
             height:30
+            multiline:False
             width:30
+            on_text_validate:
+                app.root.ids.pedidos.atualizar_qnt_item(root.indice,self.text)
         Label_Itens:
             text:" x "+ root.item["valor_und"]+" = "+str(float(root.item["valor_und"].replace(",","."))*int(root.item["qnt"]))
 
@@ -215,13 +218,7 @@
     BoxLayout:
         size_hint:1,None
         height:dp(50)
-        canvas:
-            Color:
-                rgb:1,1,1
-            RoundedRectangle:
-                size:self.size
-                pos:self.pos
-                radius: [dp(10)]
+        
         BoxLayout:
             CheckBox:
                 text: "cb1"
@@ -264,7 +261,7 @@
                 height:dp(20)            
     BoxLayout:
         size_hint_y:None
-        height:40
+        height:15
         spacing:dp(4)
         InfoTextInput:
             id:fp_dinheiro

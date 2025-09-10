@@ -426,6 +426,11 @@ class Pedidos(Screen):
     def atualiza_visao_pedido(self):
         self.ids.lista_pedidos.clear_widgets()
         self.ids.lista_pedidos.add_widget(Pedido_aberto(self.pedido_ativo,self.headers))
+    def atualizar_qnt_item(self,indice,nova_qnt):
+        API_URL = f"http://127.0.0.1:8000/pedidos/{self.pedido_ativo}/itens/{indice}/update_qnt"
+        requests.put(API_URL, params={"quantidade": nova_qnt},headers=self.headers)
+        self.atualiza_visao_pedido()
+        #print(response.json())
         #MyPopUp_Alerta("adicionou").open()
     #     API_URL = f"http://127.0.0.1:8000/pedidos/{self.pedido_ativo}/itens/add"
 
